@@ -1,0 +1,88 @@
+---
+title: "Exploratory Data Analysis - MovieLens"
+author: "Manuel Alejandro Matías Astorga"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(readr)
+```
+
+### 📥 Load Data
+
+```{r load-data}
+ratings <- read_csv("../data/ml-1m/ratings.csv")
+movies <- read_csv("../data/ml-1m/movies.csv")
+users <- read_csv("../data/ml-1m/users.csv")
+```
+
+### 🎯 Ratings Distribution
+
+```{r ratings-distribution}
+ggplot(ratings, aes(x = rating)) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "Distribution of Ratings", x = "Rating", y = "Count") +
+  theme_minimal()
+```
+
+### 🎬 Most Rated Movies
+
+```{r top-rated-movies}
+ratings %>%
+  count(movieId, sort = TRUE) %>%
+  top_n(10) %>%
+  left_join(movies, by = "movieId") %>%
+  ggplot(aes(x = reorder(title, n), y = n)) +
+  geom_bar(stat = "identity", fill = "darkorange") +
+  coord_flip() +
+  labs(title = "Top 10 Most Rated Movies", x = "Movie", y = "Number of Ratings") +
+  theme_minimal()
+```
+
+### 👤 Most Active Users
+
+```{r active-users}
+ratings %>%
+  count(userId, sort = TRUE) %>%
+  top_n(10) %>%
+  ggplot(aes(x = reorder(as.factor(userId), n), y = n)) +
+  geom_bar(stat = "identity", fill = "forestgreen") +
+  coord_flip() +
+  labs(title = "Top 10 Most Active Users", x = "User ID", y = "Ratings Count") +
+  theme_minimal()
+```
+
+### 📊 Rating Matrix Sparsity (Heatmap idea)
+
+```{r sparsity-sample}
+library(Matrix)
+
+# sample 100 users × 100 movies
+rating_sample <- ratings %>%
+  sample_n(5000) %>%
+  pivot_wider(names_from = movieId, values_from = rating) %>%
+  select(-userId)
+
+# convert to matrix and plot sparsity
+image(as.matrix(!is.na(rating_sample)), col = c("white", "black"),
+      main = "User-Movie Interaction Sparsity (Sample)")
+```
+
+## Summary and Next Steps
+
+This initial exploratory analysis confirms the dataset's sparsity and user-item imbalance.
+Most users rate few movies, while a handful of movies dominate the rating count.
+
+To enhance our recommendation strategy, we will:
+
+- Enrich the movies dataset using TMDb API (overview, genres, cast, etc.)
+- Store the extended information in MongoDB Atlas
+- Use this information for a content-based and hybrid recommendation model
