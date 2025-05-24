@@ -76,7 +76,7 @@ image(as.matrix(!is.na(rating_sample)), col = c("white", "black"),
       main = "User-Movie Interaction Sparsity (Sample)")
 ```
 
-## Summary and Next Steps
+## ✍️ Summary and Next Steps
 
 This initial exploratory analysis confirms the dataset's sparsity and user-item imbalance.
 Most users rate few movies, while a handful of movies dominate the rating count.
