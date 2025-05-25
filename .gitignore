@@ -27,6 +27,8 @@ renv/
 .ipynb_checkpoints/
 /notebooks/*.html
 /notebooks/rsconnect/
+/notebooks/.jupyter/
+/notebooks/.virtual_documents/
 
 # VSCode
 .vscode/

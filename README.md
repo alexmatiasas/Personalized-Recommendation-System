@@ -93,6 +93,56 @@ This project builds a movie recommender system by integrating collaborative filt
 
 ---
 
+## 📓 Jupyter Kernel Setup
+
+To run the notebooks in the correct environment, install the Jupyter kernel as a development-only dependency:
+
+    ```bash
+    # Install Jupyter and IPython kernel for notebook development (dev group)
+    poetry add --group dev ipykernel jupyter
+
+    # Register the kernel
+    poetry run python -m ipykernel install --user --name personalized-recommender --display-name    "Python (Recommendation)"
+    ```
+
+Then launch Jupyter:
+
+    ```bash
+    poetry run jupyter lab
+    ```
+
+In the notebook interface, go to `Select Kernel` and then `Jupyter Kernel...`.
+
+![Step 1 VSCode](docs/images/VSCode-setup-kernel-2.png)
+
+and then select: Python (Recommendation) as the kernel.
+
+![Step 2 VSCode](docs/images/VSCode-setup-kernel-3.png)
+
+📓 Full setup instructions: [docs/jupyter_kernel_setup.md](docs/jupyter_kernel_setup.md)
+
+---
+
+## 📊 Enriched Dataset EDA (02_EDA_Enriched.ipynb)
+
+This notebook performs an exploratory analysis over the 3,755 enriched movies, focusing on:
+
+* Overview length distributions
+* Genre frequency
+* Popularity and vote averages
+* Release year patterns
+* Top movies by rating and popularity
+
+🖼️ Sample visualizations:
+
+| Overview Length Distribution | Genre Frequency |
+|-----------------------------|-----------------|
+| ![Overview](docs/images/overview_length.png) | ![Genres](docs/images/genre_freq.png) |
+
+📊 Full EDA: [docs/enriched_data_analysis.md](docs/enriched_data_analysis.md)
+
+---
+
 ## 🔍 Recommender Models
 
 * ✅ Content-based recommender using TF-IDF over overviews
