@@ -105,4 +105,41 @@ poetry run pytest --cov=src --cov-report=term-missing
 
 ---
 
+## ❓ Troubleshooting: Why does my commit fail?
+
+If your commit fails with messages from black, isort, or ruff, don’t worry—this is expected behavior.
+
+What happened?
+
+When you run:
+
+   ```bash
+   git commit -m "Your message"
+   ```
+
+pre-commit activates hooks (automated checks) before your commit goes through. These hooks:
+
+- Run tools like `black` or `isort`
+- Automatically fix formatting if needed
+
+If any file is modified by these tools, the commit is aborted to prevent committing outdated versions.
+
+---
+
+How to fix it?
+
+1.	Run git status — you’ll see updated files.
+2.	Add them again:
+   ```bash
+   git add .
+   ```
+3.	Try the commit again:
+   ```bash
+   git commit -m "Your message"
+   ```
+
+✅ That’s it! You’re committing fully formatted and linted code.
+
+---
+
 Please follow these guidelines to ensure consistent contributions. Thank you!
