@@ -1,11 +1,13 @@
-import pandas as pd
-import requests
-import time
 import os
-from pymongo import MongoClient
-from dotenv import load_dotenv
+
 # from urllib.parse import quote
 import re
+import time
+
+import pandas as pd
+import requests
+from dotenv import load_dotenv
+from pymongo import MongoClient
 
 # Load environment variables from .env file
 load_dotenv()
@@ -25,10 +27,12 @@ collection = db["movies_enriched"]
 # Read movies dataset
 movies_df = pd.read_csv("data/ml-1m/movies.csv")
 
+
 # Function to clean the title
 # Remove the year in parentheses at the end of the title
 def clean_title(title):
     return re.sub(r"\s\(\d{4}\)$", "", title).strip()
+
 
 # Function to search for a movie in TMDb
 def search_movie(title):
@@ -38,7 +42,7 @@ def search_movie(title):
             "api_key": TMDB_API_KEY,
             "query": title,
             "language": "en-US",
-            "include_adult": "false"
+            "include_adult": "false",
         }
         response = requests.get(url, params=params)
         if response.status_code == 200:
@@ -50,6 +54,7 @@ def search_movie(title):
     except Exception as e:
         print(f"⚠️ Excepción in search_movie('{title}'): {e}")
     return None
+
 
 # Enrich and store movies in MongoDB
 def enrich_and_store(movies, limit=100):
@@ -78,12 +83,15 @@ def enrich_and_store(movies, limit=100):
                 "popularity": result.get("popularity"),
                 "vote_average": result.get("vote_average"),
             }
-            collection.update_one({"movieId": movie_id}, {"$set": enriched}, upsert=True)
+            collection.update_one(
+                {"movieId": movie_id}, {"$set": enriched}, upsert=True
+            )
             print(f"✅ Saved: {title}")
         else:
             print(f"❌ Not found: {title}")
 
         time.sleep(0.25)  # avoid rate limit (40 req/10s)
+
 
 # Execute the script (you can change the limit)
 if __name__ == "__main__":
