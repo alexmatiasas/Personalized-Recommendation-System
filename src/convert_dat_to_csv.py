@@ -8,7 +8,7 @@ ratings = pd.read_csv(
     sep="::",
     engine="python",
     names=["userId", "movieId", "rating", "timestamp"],
-    encoding="ISO-8859-1"
+    encoding="ISO-8859-1",
 )
 ratings.to_csv(base_path + "ratings.csv", index=False)
 
@@ -18,7 +18,7 @@ users = pd.read_csv(
     sep="::",
     engine="python",
     names=["userId", "gender", "age", "occupation", "zip"],
-    encoding="ISO-8859-1"
+    encoding="ISO-8859-1",
 )
 users.to_csv(base_path + "users.csv", index=False)
 
@@ -28,6 +28,6 @@ movies = pd.read_csv(
     sep="::",
     engine="python",
     names=["movieId", "title", "genres"],
-    encoding="ISO-8859-1"
+    encoding="ISO-8859-1",
 )
 movies.to_csv(base_path + "movies.csv", index=False)

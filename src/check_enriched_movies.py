@@ -1,7 +1,8 @@
-from pymongo import MongoClient
-from dotenv import load_dotenv
 import os
+
 import pandas as pd
+from dotenv import load_dotenv
+from pymongo import MongoClient
 
 # Load environment variables from .env file
 load_dotenv()
@@ -13,7 +14,7 @@ db = client["movies_db"]
 collection = db["movies_enriched"]
 
 # Movies with overview not null
-query = {"overview": {"$exists": True, "$ne": None, "$ne": ""}}
+query = {"overview": {"$exists": True, "$ne": ""}}
 enriched_movies = collection.find(query)
 
 # Count enriched movies
