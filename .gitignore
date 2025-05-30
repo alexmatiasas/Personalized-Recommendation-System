@@ -30,6 +30,13 @@ renv/
 /notebooks/.jupyter/
 /notebooks/.virtual_documents/
 
+# JetBrains IDEs
+.idea/
+
+# Jupyter
+.jupyter/
+.virtual_documents/
+
 # VSCode
 .vscode/
 

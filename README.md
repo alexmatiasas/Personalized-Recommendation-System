@@ -175,6 +175,12 @@ See [security\_checklist.md](./security_checklist.md) for full practices.
 
 ---
 
+## 🧩 Next Steps
+
+* Implement linters and formatters for notebooks (e. g. `nbqa`)
+
+---
+
 ## 🧠 Author
 
 **Manuel Alejandro Matías Astorga**
