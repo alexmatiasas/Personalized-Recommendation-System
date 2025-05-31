@@ -25,7 +25,7 @@ class CollaborativeFilteringRecommender:
         item_ids (List[int]): List of movie IDs.
     """
 
-    def __init__(self, ratings_path, enriched_movies_path):
+    def __init__(self, ratings_path=None, enriched_movies_path=None):
         """
         Initialize the recommender system with file paths for the ratings and enriched metadata.
         Sets up internal structures for later use.
@@ -38,26 +38,38 @@ class CollaborativeFilteringRecommender:
         self.user_ids = None
         self.item_ids = None
 
-    def load_data(self):
+    def load_data(self, ratings_df=None, enriched_df=None):
         """
-        Load and filter the ratings dataset to include only movies present in the enriched metadata.
+        Load data from file or directly from provided DataFrames (for testing).
 
-        This ensures that recommendations are based only on movies with enriched metadata.
+        If ratings_df and/or enriched_df are provided, use them directly.
+        Otherwise, load data from the provided file paths.
+
+        Args:
+            ratings_df (pd.DataFrame, optional): Ratings DataFrame for testing.
+            enriched_df (pd.DataFrame, optional): Enriched movies DataFrame for testing.
         """
-        # Load the ratings and enriched movies datasets
-        self.ratings_df = pd.read_csv(self.ratings_path)
-        enriched_df = pd.read_csv(self.enriched_movies_path)
-        # Create a set of movie IDs present in the enriched movies dataset
-        enriched_movie_ids = set(enriched_df["movieId"])
-        original_count = len(self.ratings_df)
-        # Keep only ratings for movies present in the enriched dataset
-        self.ratings_df = self.ratings_df[
-            self.ratings_df["movieId"].isin(enriched_movie_ids)
-        ]
-        filtered_count = len(self.ratings_df)
-        print(
-            f"✅ Loaded {filtered_count} ratings (filtered from {original_count}) based on enriched metadata."
-        )
+        if ratings_df is not None:
+            self.ratings_df = ratings_df.copy()
+            if enriched_df is not None:
+                enriched_ids = set(enriched_df["movieId"])
+                self.ratings_df = self.ratings_df[
+                    self.ratings_df["movieId"].isin(enriched_ids)
+                ]
+        else:
+            self.ratings_df = pd.read_csv(self.ratings_path)
+            enriched_df = (
+                pd.read_csv(self.enriched_movies_path)
+                if self.enriched_movies_path
+                else None
+            )
+            if enriched_df is not None:
+                enriched_ids = set(enriched_df["movieId"])
+                self.ratings_df = self.ratings_df[
+                    self.ratings_df["movieId"].isin(enriched_ids)
+                ]
+
+        print(f"✅ Loaded {len(self.ratings_df)} ratings based on enriched metadata.")
 
     def build_user_item_matrix(self):
         """
@@ -117,13 +129,14 @@ class CollaborativeFilteringRecommender:
         print(f"🔍 Top {top_n} similar users to user {user_id}: {similar_users}")
         return similar_users
 
-    def recommend_movies_for_user(self, user_id, top_n=10):
+    def recommend_movies_for_user(self, user_id, top_n=10, exclude_watched=True):
         """
         Recommend movies to a given user based on similar users' preferences.
 
         Args:
             user_id (int): Target user ID.
             top_n (int): Number of recommended movies to return.
+            exclude_watched (bool): Whether to exclude movies already rated by the user.
 
         Returns:
             List[int]: List of recommended movie IDs.
@@ -148,8 +161,9 @@ class CollaborativeFilteringRecommender:
 
         # Compute weighted scores for all movies using similar users' ratings
         scores = sim_scores @ self.user_item_matrix.toarray()
-        # Exclude already rated movies by setting their score to -1
-        scores[user_ratings > 0] = -1
+        # Exclude already rated movies by setting their score to -1, if requested
+        if exclude_watched:
+            scores[user_ratings > 0] = -1
 
         # Get indices of the top-N highest scoring movies
         top_indices = scores.argsort()[::-1][:top_n]
