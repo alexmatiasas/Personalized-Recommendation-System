@@ -1,6 +1,9 @@
 import os
 import sys
 
+# Add src/ to the path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import joblib
 import numpy as np
 import pandas as pd
@@ -54,9 +57,6 @@ def load_similarity(path: str = "models/user_similarity.joblib"):
         print(f"⚠️ Similarity file not found at: {path}")
         return None
 
-
-# Add src/ to the path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 load_dotenv()
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
