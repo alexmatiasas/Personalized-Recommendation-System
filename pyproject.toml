@@ -5,6 +5,7 @@ description = "A personalized recommendation system for movies using MovieLens a
 authors = ["Alejandro Matías Astorga <alejandromatiasastorga@gmail.com>"]
 license = "MIT"
 readme = "README.md"
+packages = [{ include = "src", from = "." }]
 
 [tool.poetry.dependencies]
 python = "^3.12"

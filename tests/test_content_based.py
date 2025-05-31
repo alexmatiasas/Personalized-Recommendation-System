@@ -12,7 +12,14 @@ from src.content_based import ContentBasedRecommender
 
 @pytest.fixture
 def recommender():
-    df = pd.read_csv("data/processed/enriched_movies_clean.csv")
+    df = pd.DataFrame(
+        {
+            "movieId": [1, 2],
+            "title": ["Toy Story (1995)", "Jumanji (1995)"],
+            "overview": ["A story about toys.", "A magical board game."],
+            "genres": ["Animation|Children|Comedy", "Adventure|Children|Fantasy"],
+        }
+    )
     model = ContentBasedRecommender(df)
     model.fit()
     return model

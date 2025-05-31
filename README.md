@@ -2,6 +2,8 @@
 
 [![pre-commit enabled](https://img.shields.io/badge/pre--commit-enabled-brightgreen)](https://pre-commit.com/)
 [![Coverage Status](https://img.shields.io/badge/coverage-dynamic-lightgrey)](https://pytest-cov.readthedocs.io/)
+![CI](https://github.com/alexmatiasas/Personalized-Recommendation-System/actions/workflows/ci.yml/badge.svg)
+[![codecov](https://codecov.io/gh/tu-usuario/tu-repo/branch/develop/graph/badge.svg)](https://codecov.io/gh/tu-usuario/tu-repo)
 
 > **Objective**: Build a personalized movie recommendation system using enriched metadata from TMDb and collaborative user ratings from the MovieLens dataset. The goal is to demonstrate advanced skills in data ingestion, preprocessing, content-based modeling, hybrid systems, NoSQL data handling, and deployable ML pipelines—all suitable for real-world product integration and data science portfolios.
 
@@ -170,6 +172,12 @@ See [security\_checklist.md](./security_checklist.md) for full practices.
 * `.env` excluded from Git
 * TMDb keys and Mongo credentials never exposed
 * MongoDB access limited to authenticated users (dev/prod separation planned)
+
+---
+
+## 🧩 Next Steps
+
+* Implement linters and formatters for notebooks (e. g. `nbqa`)
 
 ---
 
