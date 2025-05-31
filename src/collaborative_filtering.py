@@ -6,6 +6,7 @@ on the MovieLens 1M ratings dataset. It includes functions to load data, build a
 matrix, compute similarity between users, and generate movie recommendations.
 """
 
+import joblib
 import pandas as pd
 from scipy.sparse import csr_matrix
 from sklearn.metrics.pairwise import cosine_similarity
@@ -70,6 +71,7 @@ class CollaborativeFilteringRecommender:
                 ]
 
         print(f"✅ Loaded {len(self.ratings_df)} ratings based on enriched metadata.")
+        self.build_user_item_matrix()
 
     def build_user_item_matrix(self):
         """
@@ -95,9 +97,82 @@ class CollaborativeFilteringRecommender:
 
         The similarity matrix captures how similar each user is to every other user.
         """
+        # Ensure the user-item matrix is initialized
+        if self.user_item_matrix is None:
+            raise ValueError(
+                "⚠️ User-item matrix is not initialized. Did you call build_user_item_matrix()?"
+            )
         # Compute similarity between users based on their rating vectors
         self.similarity_matrix = cosine_similarity(self.user_item_matrix)
         print("✅ Computed user-user similarity matrix")
+
+    def save_matrices(self, matrix_dir="data/processed"):
+        """
+        Save the user-item matrix and similarity matrix as binary files.
+
+        Args:
+            matrix_dir (str): Directory path where the matrices will be saved.
+        """
+        import os
+
+        import numpy as np
+        from scipy.sparse import save_npz
+
+        os.makedirs(matrix_dir, exist_ok=True)
+        save_npz(
+            os.path.join(matrix_dir, "user_item_matrix.npz"), self.user_item_matrix
+        )
+        np.save(
+            os.path.join(matrix_dir, "similarity_matrix.npy"), self.similarity_matrix
+        )
+        print("💾 Saved user-item and similarity matrices.")
+
+    def load_matrices(self, matrix_dir="data/processed"):
+        """
+        Load the user-item matrix and similarity matrix from binary files.
+
+        Args:
+            matrix_dir (str): Directory path where the matrices are stored.
+        """
+        import os
+
+        import numpy as np
+        from scipy.sparse import load_npz
+
+        self.user_item_matrix = load_npz(
+            os.path.join(matrix_dir, "user_item_matrix.npz")
+        )
+        self.similarity_matrix = np.load(
+            os.path.join(matrix_dir, "similarity_matrix.npy")
+        )
+        print("📥 Loaded precomputed user-item and similarity matrices.")
+
+    def save_similarity(self, path="models/similarity_matrix.joblib"):
+        """
+        Save the computed similarity matrix using joblib for efficient serialization.
+
+        Args:
+            path (str): Destination file path for the similarity matrix.
+        """
+        if self.similarity_matrix is None:
+            raise ValueError(
+                "⚠️ Similarity matrix not computed. Run compute_user_similarity()."
+            )
+        import os
+
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        joblib.dump(self.similarity_matrix, path)
+        print(f"💾 Similarity matrix saved to {path}")
+
+    def load_similarity(self, path="models/similarity_matrix.joblib"):
+        """
+        Load a precomputed similarity matrix using joblib.
+
+        Args:
+            path (str): File path to the serialized similarity matrix.
+        """
+        self.similarity_matrix = joblib.load(path)
+        print(f"📥 Similarity matrix loaded from {path}")
 
     def get_user_recommendations(self, user_id, top_n=5):
         """
@@ -187,6 +262,8 @@ if __name__ == "__main__":
     recommender.build_user_item_matrix()
     # 3. Compute user-user similarity
     recommender.compute_user_similarity()
+    # 4. Save matrices for future use
+    recommender.save_matrices()
     # 4. Get the top 5 most similar users to user 1
     recommender.get_user_recommendations(user_id=1, top_n=5)
     # 5. Get the top 5 recommended movies for user 1
