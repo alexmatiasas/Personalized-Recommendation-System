@@ -4,59 +4,15 @@ import sys
 # Add src/ to the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import joblib
-import numpy as np
 import pandas as pd
-import requests
 import streamlit as st
 from dotenv import load_dotenv
 
 from src.collaborative_filtering import CollaborativeFilteringRecommender
 from src.content_based import ContentBasedRecommender
-
-
-def normalize_title(title):
-    if ", The" in title:
-        title = "The " + title.replace(", The", "")
-    elif ", A" in title:
-        title = "A " + title.replace(", A", "")
-    elif ", An" in title:
-        title = "An " + title.replace(", An", "")
-    name = title.rsplit("(", 1)[0].strip()
-    year = ""
-    if "(" in title and ")" in title:
-        try:
-            raw_year = title.split("(")[-1].replace(")", "").strip()
-            if raw_year.isdigit() and len(raw_year) == 4:
-                year = raw_year
-        except Exception:
-            pass
-    return name, year
-
-
-# Utility functions for saving/loading similarity matrices
-
-
-def save_similarity(
-    similarity_matrix: np.ndarray, path: str = "models/user_similarity.joblib"
-):
-    """
-    Save the user-user similarity matrix to disk using joblib.
-    """
-    joblib.dump(similarity_matrix, path)
-
-
-def load_similarity(path: str = "models/user_similarity.joblib"):
-    """
-    Load a precomputed user-user similarity matrix from disk using joblib.
-    """
-    if os.path.isfile(path):
-        print(f"🔁 Found similarity file at: {path}")
-        return joblib.load(path)
-    else:
-        print(f"⚠️ Similarity file not found at: {path}")
-        return None
-
+from src.ui.components import generate_genre_html, generate_rating_html
+from src.ui.helpers import load_similarity, normalize_title, save_similarity
+from src.ui.tmdb import get_movie_trailer_url
 
 load_dotenv()
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
@@ -66,28 +22,6 @@ base_url = "https://image.tmdb.org/t/p/w500/"
 @st.cache_resource
 def load_similarity_cached(path: str = "models/user_similarity.joblib"):
     return load_similarity(path)
-
-
-def get_trailer_url(title):
-    try:
-        query = title.replace(" ", "%20")
-        search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={query}"
-        response = requests.get(search_url).json()
-        movie_id = response["results"][0]["id"]
-
-        videos_url = f"https://api.themoviedb.org/3/movie/{movie_id}/videos?api_key={TMDB_API_KEY}"
-        videos = requests.get(videos_url).json()["results"]
-        trailer = next(
-            (
-                vid
-                for vid in videos
-                if vid["type"] == "Trailer" and vid["site"] == "YouTube"
-            ),
-            None,
-        )
-        return f"https://www.youtube.com/watch?v={trailer['key']}" if trailer else None
-    except Exception:
-        return None
 
 
 st.title("🎬 Movie Recommender System")
@@ -139,39 +73,47 @@ if option == "Content-Based":
             )
         except Exception:
             genres = []
-        genre_html = " ".join(
-            [
-                f"<span style='background-color:#444;border-radius:8px;padding:4px 8px;margin-right:5px;font-size:12px;color:white;'>{g}</span>"
-                for g in genres
-            ]
-        )
+        genre_html = generate_genre_html(genres)
         score = selected_movie["vote_average"]
-        stars = "★" * int(round(score)) + "☆" * (10 - int(round(score)))
-        score_html = f"<span style='color:#ffc107;'>{stars}</span> <span style='color:#bbb;'>({score}/10)</span><br><small><em style='color:#888;'>Based on TMDB user ratings</em></small>"
+        score_html = generate_rating_html(score)
         st.markdown(
-            f"""
+            """
             <div style='background-color:#1a1a40; padding:20px; border-radius:12px; margin-bottom:25px; display: flex; align-items: flex-start; box-shadow: 0 6px 12px rgba(0,0,0,0.3);'>
-                <img src="{base_url + selected_movie['poster_path']}" style="width:140px; height:auto; border-radius:5px; margin-right:25px;" />
+                <img src="{}" style="width:140px; height:auto; border-radius:5px; margin-right:25px;" />
                 <div style="flex:1;">
-                    <h3 style='margin-bottom:5px; color:#b3beff;'>🎬 {normalize_title(selected_movie['title'])[0]}</h3>
-                    <p style='margin-top:0; color:#bbb; font-size:14px;'>📅 {year}</p>
+                    <h3 style='margin-bottom:5px; color:#efb810;'>🎬 {}</h3>
+                    <p style='margin-top:0; color:#bbb; font-size:14px;'>📅 {}</p>
                     <div style='margin:5px 0;'>
                         <strong style='color:#e0e0e0;'>Genres:</strong>
-                        {genre_html}
+                        {}
                     </div>
-                    <p style='margin:5px 0; color:#e0e0e0;'>{selected_movie['overview']}</p>
+                    <p style='margin:5px 0; color:#e0e0e0;'>{}</p>
                     <div style='margin:5px 0;'>
-                        <strong style='color:#e0e0e0;'>Rating:</strong> {score_html}
+                        <strong style='color:#e0e0e0;'>Rating:</strong> {}
                     </div>
+                    {}
                     <p style='margin-top:10px;'>
-                      <a href="https://www.themoviedb.org/search?query={normalize_title(selected_movie['title'])[0].replace(' ', '%20')}" target="_blank" style="color:#00ffff;">More Info ↗</a>
+                      <a href="https://www.themoviedb.org/search?query={}" target="_blank" style="color:#00ffff;">More Info ↗</a>
                     </p>
                 </div>
             </div>
-            """,
+            """.format(
+                base_url + selected_movie["poster_path"],
+                normalize_title(selected_movie["title"])[0],
+                year,
+                genre_html,
+                selected_movie["overview"],
+                score_html,
+                (
+                    "<p style='font-size:12px; color:gray; margin:0;'>Based on TMDB user ratings</p>"
+                    if score_html != 0
+                    else ""
+                ),
+                normalize_title(selected_movie["title"])[0].replace(" ", "%20"),
+            ),
             unsafe_allow_html=True,
         )
-    trailer_url = get_trailer_url(normalize_title(selected_movie["title"])[0])
+    trailer_url = get_movie_trailer_url(normalize_title(selected_movie["title"])[0])
     if trailer_url:
         st.markdown("### 🎬 Watch Trailer")
         st.video(trailer_url)
@@ -198,38 +140,46 @@ if option == "Content-Based":
                     )
                 except Exception:
                     genres = []
-                genre_html = " ".join(
-                    [
-                        f"<span style='background-color:#333; color:white; padding:3px 8px; border-radius:10px; margin-right:6px; font-size:12px;'>{genre}</span>"
-                        for genre in genres
-                    ]
-                )
+                genre_html = generate_genre_html(genres)
                 score = row["vote_average"]
-                stars = "★" * int(round(score)) + "☆" * (10 - int(round(score)))
-                score_html = f"<span style='color:#ffc107;'>{stars}</span> <span style='color:#bbb;'>({score}/10)</span><br><small><em style='color:#888;'>Based on TMDB user ratings</em></small>"
+                score_html = generate_rating_html(score)
                 # Compose the card HTML, with More Info link inside the card div
-                card_html = f"""
+                card_html = """
                     <div style='background-color:#111111; padding:15px; border-radius:10px; margin-bottom:20px; display: flex; align-items: flex-start; box-shadow: 0 4px 8px rgba(0,0,0,0.25); transition: transform 0.2s;'>
-                        <img src="{base_url + row['poster_path']}" style="width:120px; height:auto; border-radius:5px; margin-right:15px;" />
+                        <img src="{}" style="width:120px; height:auto; border-radius:5px; margin-right:15px;" />
                         <div style="flex:1;">
-                            <h4 style='margin-bottom:0px; color:#b3beff;'>🎬 {title}</h4>
-                            <p style='margin-top:2px; color:#bbb; font-size:14px;'>📅 {year}</p>
+                            <h4 style='margin-bottom:0px; color:#efb810;'>🎬 {}</h4>
+                            <p style='margin-top:2px; color:#bbb; font-size:14px;'>📅 {}</p>
                             <div style='margin:5px 0;'>
                                 <strong style='color:#ccc;'>Genres:</strong>
-                                {genre_html}
+                                {}
                             </div>
-                            <p style='margin:5px 0; color:#ccc;'>{row['overview'][:300]}...</p>
+                            <p style='margin:5px 0; color:#ccc;'>{}...</p>
                             <div style='margin:5px 0;'>
-                                <strong style='color:#ccc;'>Rating:</strong> {score_html}
+                                <strong style='color:#ccc;'>Rating:</strong> {}
                             </div>
+                            {}
                             <p style='margin-top:10px;'>
-                              <a href="https://www.themoviedb.org/search?query={title.replace(" ", "%20")}" target="_blank" style="color:#00ffff;">More Info ↗</a>
+                              <a href="https://www.themoviedb.org/search?query={}" target="_blank" style="color:#00ffff;">More Info ↗</a>
                             </p>
                         </div>
                     </div>
-                """
+                """.format(
+                    base_url + row["poster_path"],
+                    title,
+                    year,
+                    genre_html,
+                    row["overview"][:300],
+                    score_html,
+                    (
+                        "<p style='font-size:12px; color:gray; margin:0;'>Based on TMDB user ratings</p>"
+                        if score_html != 0
+                        else ""
+                    ),
+                    title.replace(" ", "%20"),
+                )
                 st.markdown(card_html, unsafe_allow_html=True)
-                trailer_url = get_trailer_url(title)
+                trailer_url = get_movie_trailer_url(title)
                 if trailer_url:
                     st.video(trailer_url)
 
@@ -292,37 +242,45 @@ else:
                 )
             except Exception:
                 genres = []
-            genre_html = " ".join(
-                [
-                    f"<span style='background-color:#333; color:white; padding:3px 8px; border-radius:10px; margin-right:6px; font-size:12px;'>{genre}</span>"
-                    for genre in genres
-                ]
-            )
+            genre_html = generate_genre_html(genres)
             score = row["vote_average"]
-            stars = "★" * int(round(score)) + "☆" * (10 - int(round(score)))
-            score_html = f"<span style='color:#ffc107;'>{stars}</span> <span style='color:#bbb;'>({score}/10)</span><br><small><em style='color:#888;'>Based on TMDB user ratings</em></small>"
+            score_html = generate_rating_html(score)
             title_normalized = title.replace(" ", "%20")
-            card_html = f"""
+            card_html = """
                 <div style='background-color:#111111; padding:15px; border-radius:10px; margin-bottom:20px; display: flex; align-items: flex-start; box-shadow: 0 4px 8px rgba(0,0,0,0.25); transition: transform 0.2s;'>
-                    <img src="{base_url + row['poster_path']}" style="width:120px; height:auto; border-radius:5px; margin-right:15px;" />
+                    <img src="{}" style="width:120px; height:auto; border-radius:5px; margin-right:15px;" />
                     <div style="flex:1;">
-                        <h4 style='margin-bottom:0px; color:#b3beff;'>🎬 {title}</h4>
-                        <p style='margin-top:2px; color:#bbb; font-size:14px;'>📅 {year}</p>
+                        <h4 style='margin-bottom:0px; color:#efb810;'>🎬 {}</h4>
+                        <p style='margin-top:2px; color:#bbb; font-size:14px;'>📅 {}</p>
                         <div style='margin:5px 0;'>
                             <strong style='color:#ccc;'>Genres:</strong>
-                            {genre_html}
+                            {}
                         </div>
-                        <p style='margin:5px 0; color:#ccc;'>{row['overview'][:300]}...</p>
+                        <p style='margin:5px 0; color:#ccc;'>{}...</p>
                         <div style='margin:5px 0;'>
-                            <strong style='color:#ccc;'>Rating:</strong> {score_html}
+                            <strong style='color:#ccc;'>Rating:</strong> {}
                         </div>
+                        {}
                         <p style='margin-top:10px;'>
-                          <a href="https://www.themoviedb.org/search?query={title_normalized}" target="_blank" style="color:#00ffff;">More Info ↗</a>
+                          <a href="https://www.themoviedb.org/search?query={}" target="_blank" style="color:#00ffff;">More Info ↗</a>
                         </p>
                     </div>
                 </div>
-            """
+            """.format(
+                base_url + row["poster_path"],
+                title,
+                year,
+                genre_html,
+                row["overview"][:300],
+                score_html,
+                (
+                    "<p style='font-size:12px; color:gray; margin:0;'>Based on TMDB user ratings</p>"
+                    if score_html != 0
+                    else ""
+                ),
+                title_normalized,
+            )
             st.markdown(card_html, unsafe_allow_html=True)
-            trailer_url = get_trailer_url(title)
+            trailer_url = get_movie_trailer_url(title)
             if trailer_url:
                 st.video(trailer_url)
