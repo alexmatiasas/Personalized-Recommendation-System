@@ -76,4 +76,9 @@ renv/python/
 renv/staging/
 
 # Datasets locals
-data/
+data/processed/
+data/ml-1m/
+!data/recommendations.db
+
+# Models
+models/

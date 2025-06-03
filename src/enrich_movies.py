@@ -1,3 +1,14 @@
+"""
+Enriches a MovieLens dataset using the TMDb API and stores the enriched data in a MongoDB collection.
+
+- Loads movie titles from a CSV file.
+- Cleans titles by removing release year.
+- Searches for additional metadata via the TMDb API.
+- Stores the results in a MongoDB database, skipping already existing entries.
+
+To run this script, ensure you have TMDB_API_KEY and MONGO_URI set in a .env file.
+"""
+
 import os
 
 # from urllib.parse import quote
@@ -31,11 +42,29 @@ movies_df = pd.read_csv("data/ml-1m/movies.csv")
 # Function to clean the title
 # Remove the year in parentheses at the end of the title
 def clean_title(title):
+    """
+    Removes the release year in parentheses from the end of a movie title.
+
+    Args:
+        title (str): The original movie title (e.g., "Inception (2010)").
+
+    Returns:
+        str: Cleaned movie title (e.g., "Inception").
+    """
     return re.sub(r"\s\(\d{4}\)$", "", title).strip()
 
 
 # Function to search for a movie in TMDb
 def search_movie(title):
+    """
+    Searches TMDb for the first movie matching the given title.
+
+    Args:
+        title (str): The movie title to search for.
+
+    Returns:
+        dict or None: The first matching movie data from TMDb or None if not found.
+    """
     try:
         url = "https://api.themoviedb.org/3/search/movie"
         params = {
@@ -58,6 +87,13 @@ def search_movie(title):
 
 # Enrich and store movies in MongoDB
 def enrich_and_store(movies, limit=100):
+    """
+    Iterates through the movies DataFrame, enriches data using TMDb API, and stores the result in MongoDB.
+
+    Args:
+        movies (pd.DataFrame): DataFrame containing MovieLens movies.
+        limit (int): Maximum number of movies to process. Defaults to 100.
+    """
     for i, row in movies.head(limit).iterrows():
         title = row["title"]
         movie_id = int(row["movieId"])

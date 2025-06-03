@@ -26,6 +26,10 @@ def recommender():
 
 
 def test_recommendations_exist(recommender):
+    """
+    Test that the content-based recommender returns a non-empty list of movie titles
+    given a known movie title from the dataset.
+    """
     movie_title = "Toy Story (1995)"
     results = recommender.get_recommendations(movie_title, top_n=5)
 
