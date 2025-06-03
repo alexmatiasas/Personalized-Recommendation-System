@@ -2,14 +2,23 @@
 Collaborative Filtering Recommender
 
 This script implements a user-based collaborative filtering system using cosine similarity
-on the MovieLens 1M ratings dataset. It includes functions to load data, build a sparse user-item
-matrix, compute similarity between users, and generate movie recommendations.
+on the MovieLens 1M ratings dataset. It supports loading data either from CSV files or from
+a SQLite database, leveraging internal repository utilities. The script also includes functionality
+to save and load precomputed user-item and similarity matrices for efficient reuse.
 """
+
+import os
+import sys
+
+# Add src/ to the path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import joblib
 import pandas as pd
 from scipy.sparse import csr_matrix
 from sklearn.metrics.pairwise import cosine_similarity
+
+from src.db.repository import get_valid_ratings
 
 
 class CollaborativeFilteringRecommender:
@@ -29,7 +38,9 @@ class CollaborativeFilteringRecommender:
     def __init__(self, ratings_path=None, enriched_movies_path=None):
         """
         Initialize the recommender system with file paths for the ratings and enriched metadata.
-        Sets up internal structures for later use.
+
+        Note:
+            This class supports both file-based and database-driven pipelines.
         """
         self.ratings_path = ratings_path
         self.enriched_movies_path = enriched_movies_path
@@ -42,9 +53,6 @@ class CollaborativeFilteringRecommender:
     def load_data(self, ratings_df=None, enriched_df=None):
         """
         Load data from file or directly from provided DataFrames (for testing).
-
-        If ratings_df and/or enriched_df are provided, use them directly.
-        Otherwise, load data from the provided file paths.
 
         Args:
             ratings_df (pd.DataFrame, optional): Ratings DataFrame for testing.
@@ -71,6 +79,23 @@ class CollaborativeFilteringRecommender:
                 ]
 
         print(f"✅ Loaded {len(self.ratings_df)} ratings based on enriched metadata.")
+        self.build_user_item_matrix()
+
+    def load_data_from_db(self, db_path="data/recommendations.db"):
+        """
+        Load ratings from the SQLite database and build the user-item matrix.
+
+        Connects to the SQLite database and uses internal repository utilities to fetch valid ratings.
+
+        Args:
+            db_path (str): Path to the SQLite database file.
+        """
+        from src.db.sqlite_client import get_connection
+
+        conn = get_connection(db_path)
+        rows = get_valid_ratings(conn)
+        self.ratings_df = pd.DataFrame(rows, columns=["userId", "movieId", "rating"])
+        print(f"✅ Loaded {len(self.ratings_df)} valid ratings directly from database.")
         self.build_user_item_matrix()
 
     def build_user_item_matrix(self):
@@ -250,21 +275,9 @@ class CollaborativeFilteringRecommender:
 
 
 if __name__ == "__main__":
-    # Instantiate the recommender with dataset paths
-    recommender = CollaborativeFilteringRecommender(
-        "data/ml-1m/ratings.csv", "data/processed/enriched_movies.csv"
-    )
-
-    # Run the full recommendation pipeline:
-    # 1. Load and filter data
-    recommender.load_data()
-    # 2. Build the user-item matrix
-    recommender.build_user_item_matrix()
-    # 3. Compute user-user similarity
+    recommender = CollaborativeFilteringRecommender()
+    recommender.load_data_from_db()
     recommender.compute_user_similarity()
-    # 4. Save matrices for future use
     recommender.save_matrices()
-    # 4. Get the top 5 most similar users to user 1
     recommender.get_user_recommendations(user_id=1, top_n=5)
-    # 5. Get the top 5 recommended movies for user 1
     recommender.recommend_movies_for_user(user_id=1, top_n=5)

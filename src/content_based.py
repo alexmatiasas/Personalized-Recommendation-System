@@ -1,3 +1,10 @@
+"""
+Content-Based Recommender System module.
+
+This module defines the ContentBasedRecommender class, which uses TF-IDF vectorization
+and cosine similarity to recommend movies based on textual similarity in movie overviews.
+"""
+
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -30,21 +37,22 @@ class ContentBasedRecommender:
 
     def preprocess(self):
         """
-        Preprocesses the data by filling missing values in the overview column with empty strings.
+        Fill missing values in the overview column with empty strings to prepare for vectorization.
         """
         # Replace null values in the overview column with empty strings
         self.df[self.overview_column] = self.df[self.overview_column].fillna("")
 
     def vectorize(self):
         """
-        Converts the text overviews into TF-IDF feature vectors.
+        Vectorize the movie overviews using TF-IDF to convert text into numerical features.
         """
         # Transform the overview texts into TF-IDF vectors
         self.tfidf_matrix = self.vectorizer.fit_transform(self.df[self.overview_column])
 
     def compute_similarity(self):
         """
-        Computes the cosine similarity matrix between TF-IDF vectors and creates an index of titles.
+        Compute the cosine similarity matrix between all movie overviews based on TF-IDF vectors.
+        Also, create an index mapping from movie titles to their DataFrame indices.
         """
         # Calculate cosine similarity between all TF-IDF vectors
         self.similarity_matrix = cosine_similarity(self.tfidf_matrix, self.tfidf_matrix)
@@ -55,7 +63,7 @@ class ContentBasedRecommender:
 
     def fit(self):
         """
-        Runs the full pipeline: preprocesses data, vectorizes text, and computes similarity matrix.
+        Execute the full pipeline to prepare the recommender: preprocessing, vectorization, and similarity computation.
         """
         self.preprocess()
         self.vectorize()
@@ -63,14 +71,17 @@ class ContentBasedRecommender:
 
     def get_recommendations(self, title: str, top_n: int = 5):
         """
-        Returns a list of recommended movie titles similar to the given title.
+        Generate a list of movie recommendations based on the similarity of overviews.
 
-        Parameters:
-        - title (str): The title of the movie for which recommendations are sought.
-        - top_n (int): The number of recommendations to return.
+        Args:
+            title (str): The title of the movie to base recommendations on.
+            top_n (int): Number of recommendations to return.
 
         Returns:
-        - List[str]: A list of recommended movie titles.
+            List[str]: Recommended movie titles similar to the given title.
+
+        Raises:
+            ValueError: If the model has not been fitted or if the title is not in the dataset.
         """
         # Check if the model has been fitted
         if self.similarity_matrix is None or self.indices is None:

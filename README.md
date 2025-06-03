@@ -3,7 +3,7 @@
 [![pre-commit enabled](https://img.shields.io/badge/pre--commit-enabled-brightgreen)](https://pre-commit.com/)
 [![Coverage Status](https://img.shields.io/badge/coverage-dynamic-lightgrey)](https://pytest-cov.readthedocs.io/)
 ![CI](https://github.com/alexmatiasas/Personalized-Recommendation-System/actions/workflows/ci.yml/badge.svg)
-[![codecov](https://codecov.io/gh/tu-usuario/tu-repo/branch/develop/graph/badge.svg)](https://codecov.io/gh/tu-usuario/tu-repo)
+[![codecov](https://codecov.io/gh/alexmatiasas/Personalized-Recommendation-System/branch/develop/graph/badge.svg)](https://codecov.io/gh/alexmatiasas/Personalized-Recommendation-System)
 
 > **Objective**: Build a personalized movie recommendation system using enriched metadata from TMDb and collaborative user ratings from the MovieLens dataset. The goal is to demonstrate advanced skills in data ingestion, preprocessing, content-based modeling, hybrid systems, NoSQL data handling, and deployable ML pipelines—all suitable for real-world product integration and data science portfolios.
 
@@ -11,7 +11,7 @@
 
 ## 🔍 Project Overview
 
-This project builds a movie recommender system by integrating collaborative filtering (MovieLens ratings) with content-based recommendations (using TMDb metadata). The enriched dataset is stored in MongoDB Atlas, processed through Python and R workflows, and prepared for deployment using modern ML practices.
+This project builds a movie recommender system by integrating collaborative filtering (MovieLens ratings) with content-based recommendations (using TMDb metadata). The enriched dataset is processed through Python and R workflows, and prepared for deployment using modern ML practices.
 
 ---
 
@@ -19,25 +19,37 @@ This project builds a movie recommender system by integrating collaborative filt
 
     ```
     .
+    ├── app/
+    │   └── streamlit_app.py
     ├── data/
-    │   ├── ml-1m/                  # Original MovieLens dataset
-    │   └── processed/             # Enriched movie metadata from TMDb
-    ├── notebooks/
-    │   ├── 01_EDA_in_R.Rmd        # Exploratory analysis in R
-    │   ├── 03_EDA_Enriched.ipynb  # Metadata analysis and preparation
-    │   └── 04_Content_Recommender.ipynb
-    ├── src/
-    │   ├── enrich_movies.py       # TMDb API enrichment
-    │   ├── check_enriched_movies.py
-    │   ├── collaborative_filtering.py
-    │   └── hybrid_recommendation.py
+    │   ├── ml-1m/
+    │   │   ├── movies.csv, ratings.csv, users.csv, etc.
+    │   ├── processed/
+    │   │   ├── enriched_movies_clean.csv, similarity_matrix.npy, etc.
+    │   └── recommendations.db
+    ├── docs/
+    │   ├── enriched_data_analysis.md, jupyter_kernel_setup.md
+    │   └── images/
     ├── models/
-    ├── reports/
-    ├── requirements.txt
-    ├── pyproject.toml             # Poetry environment
-    ├── .env.example
-    ├── security_checklist.md
-    └── README.md
+    │   └── user_similarity.joblib
+    ├── notebooks/
+    │   ├── 01_EDA_in_R.*, 02_EDA_Enriched.ipynb, etc.
+    │   └── dev/
+    ├── scripts/
+    │   ├── init_db.sql, init_sqlite_db.py, load_data_to_db.py
+    ├── src/
+    │   ├── check_enriched_movies.py, convert_dat_to_csv.py, enrich_movies.py, hybrid_recommendation.py
+    │   ├── collaborative_filtering.py, content_based.py
+    │   ├── db/
+    │   │   ├── repository.py, sqlite_client.py
+    │   ├── services/
+    │   │   └── recommender_service.py
+    │   ├── ui/
+    │   │   ├── components.py, helpers.py, tmdb.py
+    ├── tests/
+    │   ├── test_collaborative_filtering.py, test_content_based.py
+    ├── pyproject.toml, poetry.lock, requirements.txt
+    ├── README.md, LICENSE, CONTRIBUTING.md, security_checklist.md
     ```
 
 ---
@@ -48,8 +60,7 @@ This project builds a movie recommender system by integrating collaborative filt
 
 * Python (`pandas`, `requests`)
 * TMDb API
-* MongoDB Atlas (NoSQL storage)
-* `pymongo`, `dotenv`
+* `dotenv`
 
 ### Modeling & Recommendation
 
@@ -85,6 +96,13 @@ This project builds a movie recommender system by integrating collaborative filt
     # Set up environment variables
     $ cp .env.example .env
     # Add your TMDb API key and MongoDB URI in .env
+
+    Your `.env` file should include the following keys if you plan to use poster enrichment or feedback logging:
+        ```
+        TMDB_API_KEY=your_tmdb_key_here
+        MONGODB_URI=your_mongodb_uri_here
+        ```
+    If you're only running the app locally with SQLite and no feedback logging, you may omit these variables.
     ```
 
 ---
@@ -94,7 +112,26 @@ This project builds a movie recommender system by integrating collaborative filt
 * MovieLens ratings explored in R
 * Movie metadata enriched from TMDb (title, genres, overview, popularity, vote average)
 * Exported dataset with 3755 enriched movies
-* Stored in MongoDB Atlas (`movies_enriched` collection)
+* The file `enriched_movies_clean.csv` is not included in this repository. Instead, the preprocessed data has been loaded into the `data/recommendations.db` SQLite database, which powers the Streamlit app. You can regenerate the enrichment and populate the database using the scripts provided.
+
+---
+
+## 📁 Dataset Reproducibility
+
+This project uses the MovieLens 1M dataset, enhanced via the TMDb API. To reproduce the enriched dataset locally:
+
+1. Download the dataset from [MovieLens 1M](https://grouplens.org/datasets/movielens/1m/) and place the `.dat` files inside `data/ml-1m/`
+2. Convert the `.dat` files to `.csv` using:
+        ```bash
+        poetry run python src/convert_dat_to_csv.py
+        ```
+3. Enrich movie metadata using the TMDb API:
+        ```bash
+        poetry run python src/enrich_movies.py
+        ```
+4. This creates `data/processed/enriched_movies_clean.csv`, used by the recommendation models and the Streamlit app.
+
+Note: The enriched metadata includes additional fields such as movie poster, popularity, overview length, and release year, which are not present in the original MovieLens data.
 
 ---
 
@@ -102,13 +139,11 @@ This project builds a movie recommender system by integrating collaborative filt
 
 To run the notebooks in the correct environment, install the Jupyter kernel as a development-only dependency:
 
-    ```bash
     # Install Jupyter and IPython kernel for notebook development (dev group)
     poetry add --group dev ipykernel jupyter
 
     # Register the kernel
     poetry run python -m ipykernel install --user --name personalized-recommender --display-name    "Python (Recommendation)"
-    ```
 
 Then launch Jupyter:
 
@@ -150,17 +185,30 @@ This notebook performs an exploratory analysis over the 3,755 enriched movies, f
 
 ## 🔍 Recommender Models
 
-* ✅ Content-based recommender using TF-IDF over overviews
-* ✅ Genre-based similarity
-* 🧪 Hybrid model planned (ratings + content)
+* ✅ Content-based recommender using TF-IDF over overviews and genres
+* ✅ Collaborative filtering based on user-user similarity (CSR matrix + cosine similarity)
+* ✅ SQLite-based backend for movie and rating queries
+* ✅ Feedback logging to MongoDB with method, user ID, source movie and recommended movies
+* ✅ Streamlit web app interface with dynamic posters, placeholders, and dual-mode recommendation
+* 🧪 Hybrid model and Surprise SVD integration planned (see placeholder notebook)
 
 ---
 
-## 📈 Deployment (Planned)
+## 📈 Deployment
 
-* Build a Streamlit or FastAPI app to serve recommendations
-* Connect live to MongoDB Atlas or use preprocessed `.csv`
-* Deploy using Render or Railway (free-tier compatible)
+* Streamlit app available via `app/streamlit_app.py`
+* Interactive movie recommender with dual modes:
+  * Content-based recommendations based on a selected movie
+  * Collaborative filtering based on existing user preferences
+* App connects to a local SQLite database (`data/recommendations.db`) for movie and rating queries. This database is included in the repository and does not require TMDb enrichment or MongoDB unless explicitly enabled via `.env`.
+* Feedback logs are recorded to MongoDB (if configured), including method, user id, movie titles, and timestamp
+* Placeholder posters are used when actual TMDb images are missing
+
+To launch the app locally:
+
+    ```bash
+    poetry run streamlit run app/streamlit_app.py
+    ```
 
 ---
 
@@ -175,9 +223,22 @@ See [security\_checklist.md](./security_checklist.md) for full practices.
 
 ---
 
-## 🧩 Next Steps
+## 🚧 Roadmap / Future Work
 
-* Implement linters and formatters for notebooks (e. g. `nbqa`)
+While the current version of this system implements content-based filtering and collaborative filtering (with optional real-time feedback logging to MongoDB), further enhancements are planned:
+
+* 🗄️ MongoDB Atlas: Migration to MongoDB as a primary backend is planned for future versions.
+
+* 🧠 Integrate matrix factorization models (e.g., `SVD` from the `surprise` library) for improved latent factor modeling.
+* 🔄 Build a hybrid recommender that combines user-based and item-based strategies with content metadata.
+* 🛠️ Add a retraining pipeline that leverages user feedback for model updates.
+* 📊 Dashboard analytics: Analyze log data to show top recommended movies, engagement by method, and feedback patterns.
+* 🔐 User authentication for personalized recommendation history.
+* 🌐 Migrate to FastAPI backend for scalability and endpoint control (planned).
+* 🚀 Containerize the app with Docker for production deployment.
+* 📦 Migrate SQLite database to PostgreSQL for production-ready deployment and scalability
+
+For advanced model experimentation, benchmarking, explainability (e.g., SHAP), and CI/CD deployment with FastAPI and Airflow, please refer to the [Fraud Detection project](https://github.com/alexmatiasas/Fraud-Detection-ML) in this portfolio.
 
 ---
 
