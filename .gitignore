@@ -7,7 +7,6 @@ __pycache__/
 *.pyd
 *.pyo
 *.log
-.python-version
 
 # Poetry
 .env
