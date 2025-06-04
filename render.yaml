@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: movie-recommender-streamlit
+    runtime: python
+    buildCommand: |
+      pip install poetry
+      poetry install
+    startCommand: poetry run streamlit run app/streamlit_app.py --server.port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: TMDB_API_KEY
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+    plan: free
