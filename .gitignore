@@ -81,6 +81,7 @@ data/ml-1m/
 
 # Demo database and matrices
 data/demo/*
+!data/demo/*.db
 data/processed_demo/*.npy
 data/processed_demo/*.npz
 

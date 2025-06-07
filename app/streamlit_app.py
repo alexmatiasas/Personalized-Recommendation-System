@@ -5,7 +5,10 @@ Logs user feedback and displays movie data enriched with TMDB metadata.
 """
 
 import os
+import platform
 import sys
+
+import psutil
 
 # Add src/ to the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -41,6 +44,12 @@ if not MONGO_URI:
     )
     st.stop()
 base_url = "https://image.tmdb.org/t/p/w500/"
+
+
+def log_memory_usage(stage: str):
+    process = psutil.Process(os.getpid())
+    mem_mb = process.memory_info().rss / 1024 / 1024
+    print(f"🔍 [MEMORY] {stage}: {mem_mb:.2f} MB used on {platform.system()}")
 
 
 def log_feedback(
@@ -88,7 +97,35 @@ def load_similarity_cached(path: str = str(MATRIX_DIR / "user_similarity.joblib"
     return load_similarity(path)
 
 
+# New function to check for matrix existence
+@st.cache_resource
+def matrices_exist() -> bool:
+    """
+    Check if the required matrix files exist.
+    """
+    return (MATRIX_DIR / "user_item_matrix.npz").exists() and (
+        MATRIX_DIR / "similarity_matrix.npy"
+    ).exists()
+
+
 st.title("🎬 Movie Recommender System")
+if DATA_MODE == "demo":
+    st.markdown(
+        "<div style='background-color:#444;padding:10px;border-radius:8px;margin-bottom:15px;'>"
+        "<strong style='color:#efb810;'>⚠️ Demo Mode Enabled:</strong> "
+        "The app is using a reduced dataset with 20 users and 1100+ movies for live preview purposes."
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+# Matrix check message
+if matrices_exist():
+    st.success("✅ Matrices already exist.")
+    log_memory_usage("After confirming matrix existence")
+else:
+    st.warning("⚠️ Matrices not found. Recomputing...")
+    log_memory_usage("After failing matrix check")
+
 if DATA_MODE == "demo":
     st.markdown(
         "<div style='background-color:#444;padding:10px;border-radius:8px;margin-bottom:15px;'>"
@@ -116,7 +153,7 @@ if option == "Content-Based":
         """
         conn = get_connection(str(DATA_DIR / "recommendations.db"))
         rows = get_all_movies(conn)
-        return pd.DataFrame(
+        df = pd.DataFrame(
             rows,
             columns=[
                 "movieId",
@@ -128,6 +165,8 @@ if option == "Content-Based":
                 "popularity",
             ],
         )
+        log_memory_usage("After loading movies from DB")
+        return df
 
     movies_df = load_movies_from_db()
 
@@ -141,6 +180,7 @@ if option == "Content-Based":
         """
         recommender = ContentBasedRecommender(movies_df)
         recommender.fit()
+        log_memory_usage("After fitting content-based recommender")
         return recommender
 
     st.markdown("---")
@@ -311,6 +351,7 @@ else:
     if st.button("Get Recommendations", key="cf_button"):
         try:
             recs = get_user_recommendations(user_id, top_n=10)
+            log_memory_usage("After generating collaborative recommendations")
             conn = get_connection(str(DATA_DIR / "recommendations.db"))
             rows = get_all_movies(conn)
             movies_df = pd.DataFrame(
@@ -325,6 +366,7 @@ else:
                     "popularity",
                 ],
             )
+            log_memory_usage("After loading movies from DB")
             recommended_titles = movies_df[movies_df["movieId"].isin(recs)][
                 "title"
             ].tolist()
