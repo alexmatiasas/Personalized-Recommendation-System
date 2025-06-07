@@ -109,6 +109,14 @@ def matrices_exist() -> bool:
 
 
 st.title("🎬 Movie Recommender System")
+if DATA_MODE == "demo":
+    st.markdown(
+        "<div style='background-color:#444;padding:10px;border-radius:8px;margin-bottom:15px;'>"
+        "<strong style='color:#efb810;'>⚠️ Demo Mode Enabled:</strong> "
+        "The app is using a reduced dataset with 20 users and 1100+ movies for live preview purposes."
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
 # Matrix check message
 if matrices_exist():
