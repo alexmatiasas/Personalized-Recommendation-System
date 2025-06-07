@@ -4,6 +4,8 @@
 [![Coverage Status](https://img.shields.io/badge/coverage-dynamic-lightgrey)](https://pytest-cov.readthedocs.io/)
 ![CI](https://github.com/alexmatiasas/Personalized-Recommendation-System/actions/workflows/ci.yml/badge.svg)
 [![codecov](https://codecov.io/gh/alexmatiasas/Personalized-Recommendation-System/branch/develop/graph/badge.svg)](https://codecov.io/gh/alexmatiasas/Personalized-Recommendation-System)
+![Python](https://img.shields.io/badge/python-3.11-blue.svg)
+![Poetry](https://img.shields.io/badge/Poetry-1.8+-blue)
 
 > **Objective**: Build a personalized movie recommendation system using enriched metadata from TMDb and collaborative user ratings from the MovieLens dataset. The goal is to demonstrate advanced skills in data ingestion, preprocessing, content-based modeling, hybrid systems, NoSQL data handling, and deployable ML pipelines—all suitable for real-world product integration and data science portfolios.
 
@@ -37,8 +39,10 @@ This project builds a movie recommender system by integrating collaborative filt
     │   └── dev/
     ├── scripts/
     │   ├── init_db.sql, init_sqlite_db.py, load_data_to_db.py
+    │   └── dev/
+    │       ├── check_enriched_movies.py, convert_dat_to_csv.py, enrich_movies.py
     ├── src/
-    │   ├── check_enriched_movies.py, convert_dat_to_csv.py, enrich_movies.py, hybrid_recommendation.py
+    │   ├── hybrid_recommendation.py
     │   ├── collaborative_filtering.py, content_based.py
     │   ├── db/
     │   │   ├── repository.py, sqlite_client.py
@@ -123,13 +127,16 @@ This project uses the MovieLens 1M dataset, enhanced via the TMDb API. To reprod
 1. Download the dataset from [MovieLens 1M](https://grouplens.org/datasets/movielens/1m/) and place the `.dat` files inside `data/ml-1m/`
 2. Convert the `.dat` files to `.csv` using:
         ```bash
-        poetry run python src/convert_dat_to_csv.py
+        poetry run python scripts/dev/convert_dat_to_csv.py
         ```
 3. Enrich movie metadata using the TMDb API:
         ```bash
-        poetry run python src/enrich_movies.py
+        poetry run python scripts/dev/enrich_movies.py
         ```
 4. This creates `data/processed/enriched_movies_clean.csv`, used by the recommendation models and the Streamlit app.
+
+
+Note: As of the latest version, the similarity matrices (`user_item_matrix.npz`, `similarity_matrix.npy`, and `user_similarity.joblib`) are no longer tracked in the repository. These files are automatically generated at runtime in the `data/processed/` and `models/` directories. If any matrix is missing, it will be computed on application startup. This ensures reproducibility and eliminates the need for storing large files.
 
 Note: The enriched metadata includes additional fields such as movie poster, popularity, overview length, and release year, which are not present in the original MovieLens data.
 
@@ -200,7 +207,8 @@ This notebook performs an exploratory analysis over the 3,755 enriched movies, f
 * Interactive movie recommender with dual modes:
   * Content-based recommendations based on a selected movie
   * Collaborative filtering based on existing user preferences
-* App connects to a local SQLite database (`data/recommendations.db`) for movie and rating queries. This database is included in the repository and does not require TMDb enrichment or MongoDB unless explicitly enabled via `.env`.
+* App connects to a local SQLite database (`data/recommendations.db`) for movie and rating queries. The similarity matrices are automatically generated if missing, so you do not need to precompute them.
+  These matrices include the user-item matrix (`user_item_matrix.npz`), content-based similarity matrix (`similarity_matrix.npy`), and user-user similarity model (`user_similarity.joblib`). If any of these files are missing, the system will detect this at startup and regenerate them dynamically to ensure functionality.
 * Feedback logs are recorded to MongoDB (if configured), including method, user id, movie titles, and timestamp
 * Placeholder posters are used when actual TMDb images are missing
 
