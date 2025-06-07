@@ -199,28 +199,6 @@ class CollaborativeFilteringRecommender:
         self.similarity_matrix = joblib.load(path)
         print(f"📥 Similarity matrix loaded from {path}")
 
-
-def ensure_matrices_exist(
-    db_path="data/recommendations.db", matrix_dir="data/processed"
-):
-    """
-    Ensure that the similarity and user-item matrices exist.
-    If not, regenerate them from the database.
-    """
-    import os
-
-    user_item_path = os.path.join(matrix_dir, "user_item_matrix.npz")
-    similarity_path = os.path.join(matrix_dir, "similarity_matrix.npy")
-
-    if not os.path.exists(user_item_path) or not os.path.exists(similarity_path):
-        print("⚠️ Matrices not found. Recomputing...")
-        recommender = CollaborativeFilteringRecommender()
-        recommender.load_data_from_db(db_path=db_path)
-        recommender.compute_user_similarity()
-        recommender.save_matrices()
-    else:
-        print("✅ Matrices already exist.")
-
     def get_user_recommendations(self, user_id, top_n=5):
         """
         Return the top-N most similar users to the given user ID.
@@ -294,6 +272,28 @@ def ensure_matrices_exist(
 
         print(f"🎯 Recommended movies for user {user_id}: {top_movie_ids}")
         return top_movie_ids
+
+
+def ensure_matrices_exist(
+    db_path="data/recommendations.db", matrix_dir="data/processed"
+):
+    """
+    Ensure that the similarity and user-item matrices exist.
+    If not, regenerate them from the database.
+    """
+    import os
+
+    user_item_path = os.path.join(matrix_dir, "user_item_matrix.npz")
+    similarity_path = os.path.join(matrix_dir, "similarity_matrix.npy")
+
+    if not os.path.exists(user_item_path) or not os.path.exists(similarity_path):
+        print("⚠️ Matrices not found. Recomputing...")
+        recommender = CollaborativeFilteringRecommender()
+        recommender.load_data_from_db(db_path=db_path)
+        recommender.compute_user_similarity()
+        recommender.save_matrices()
+    else:
+        print("✅ Matrices already exist.")
 
 
 if __name__ == "__main__":
