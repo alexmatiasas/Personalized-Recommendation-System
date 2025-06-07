@@ -9,7 +9,7 @@ output_dir = Path("data/demo")
 output_dir.mkdir(parents=True, exist_ok=True)
 
 # Parameters
-NUM_USERS = 20  # You can adjust this number depending on memory limits
+NUM_USERS = 5  # You can adjust this number depending on memory limits
 
 # Load data
 print("🔄 Loading original ratings and movie metadata...")
