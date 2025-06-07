@@ -16,15 +16,18 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+from dotenv import load_dotenv
 from scipy.sparse import csr_matrix
 
 from src.collaborative_filtering import ensure_matrices_exist
 
 ensure_matrices_exist()
 
-# Load precomputed matrices from actual file locations
-USER_ITEM_MATRIX_PATH = "data/processed/user_item_matrix.npz"
-USER_SIMILARITY_MATRIX_PATH = "data/processed/similarity_matrix.npy"
+load_dotenv()
+DATA_MODE = os.getenv("DATA_MODE", "full").lower()
+MATRIX_DIR = "data/processed_demo" if DATA_MODE == "demo" else "data/processed"
+USER_ITEM_MATRIX_PATH = os.path.join(MATRIX_DIR, "user_item_matrix.npz")
+USER_SIMILARITY_MATRIX_PATH = os.path.join(MATRIX_DIR, "similarity_matrix.npy")
 
 data = np.load(USER_ITEM_MATRIX_PATH)
 user_item_sparse = csr_matrix(
