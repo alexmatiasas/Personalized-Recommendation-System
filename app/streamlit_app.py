@@ -25,6 +25,16 @@ from src.ui.components import generate_genre_html, generate_rating_html
 from src.ui.helpers import load_similarity, normalize_title
 from src.ui.tmdb import get_movie_trailer_url
 
+load_dotenv()
+TMDB_API_KEY = os.getenv("TMDB_API_KEY")
+MONGO_URI = os.getenv("MONGO_URI")
+if not MONGO_URI:
+    st.error(
+        "⚠️ No se ha definido la variable de entorno MONGO_URI. Verifica tu archivo .env o configuración en Render."
+    )
+    st.stop()
+base_url = "https://image.tmdb.org/t/p/w500/"
+
 
 def log_feedback(
     user_id: int, recommended_movies: list, method: str, source_movie: str = None
@@ -38,8 +48,13 @@ def log_feedback(
         method (str): The recommendation method used.
         source_movie (str, optional): The movie from which recommendations were generated (for content-based).
     """
-    client = MongoClient("mongodb://localhost:27017/")
-    db = client["recommender_logs"]
+    try:
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
+        client.server_info()  # force connection to check for errors
+        db = client["recommender_logs"]
+    except Exception as e:
+        st.error(f"MongoDB connection failed: {e}")
+        return
     feedback_collection = db["user_feedback"]
     feedback_collection.insert_one(
         {
@@ -50,11 +65,6 @@ def log_feedback(
             "source_movie": source_movie,
         }
     )
-
-
-load_dotenv()
-TMDB_API_KEY = os.getenv("TMDB_API_KEY")
-base_url = "https://image.tmdb.org/t/p/w500/"
 
 
 @st.cache_resource
@@ -365,7 +375,7 @@ with st.expander("📝 View User Feedback Logs"):
     )
 
     try:
-        client = MongoClient("mongodb://localhost:27017/")
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
         db = client["recommender_logs"]
         feedback_collection = db["user_feedback"]
 

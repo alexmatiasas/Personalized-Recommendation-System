@@ -6,11 +6,21 @@ It loads precomputed user-item and similarity matrices and offers functionality 
 and recommend items based on their preferences.
 """
 
+import os
+import sys
+
+# Add src/ to the path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from typing import List
 
 import numpy as np
 import pandas as pd
 from scipy.sparse import csr_matrix
+
+from src.collaborative_filtering import ensure_matrices_exist
+
+ensure_matrices_exist()
 
 # Load precomputed matrices from actual file locations
 USER_ITEM_MATRIX_PATH = "data/processed/user_item_matrix.npz"
