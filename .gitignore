@@ -79,5 +79,10 @@ data/processed/
 data/ml-1m/
 !data/recommendations.db
 
+# Demo database and matrices
+data/demo/*
+data/processed_demo/*.npy
+data/processed_demo/*.npz
+
 # Models
 models/

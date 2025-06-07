@@ -11,6 +11,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from datetime import datetime, timezone
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
@@ -26,6 +27,12 @@ from src.ui.helpers import load_similarity, normalize_title
 from src.ui.tmdb import get_movie_trailer_url
 
 load_dotenv()
+
+DATA_MODE = os.getenv("DATA_MODE", "full").lower()
+BASE_DIR = Path("data")
+DATA_DIR = BASE_DIR / ("demo" if DATA_MODE == "demo" else "ml-1m")
+# Define the directory for processed matrices
+MATRIX_DIR = BASE_DIR / ("processed_demo" if DATA_MODE == "demo" else "processed")
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 MONGO_URI = os.getenv("MONGO_URI")
 if not MONGO_URI:
@@ -68,7 +75,7 @@ def log_feedback(
 
 
 @st.cache_resource
-def load_similarity_cached(path: str = "models/user_similarity.joblib"):
+def load_similarity_cached(path: str = str(MATRIX_DIR / "user_similarity.joblib")):
     """
     Load user similarity matrix from a cached file.
 
@@ -82,6 +89,14 @@ def load_similarity_cached(path: str = "models/user_similarity.joblib"):
 
 
 st.title("🎬 Movie Recommender System")
+if DATA_MODE == "demo":
+    st.markdown(
+        "<div style='background-color:#444;padding:10px;border-radius:8px;margin-bottom:15px;'>"
+        "<strong style='color:#efb810;'>⚠️ Demo Mode Enabled:</strong> "
+        "The app is using a reduced dataset with 20 users and 1100+ movies for live preview purposes."
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
 # Sidebar options
 option = st.sidebar.selectbox(
@@ -99,7 +114,7 @@ if option == "Content-Based":
         Returns:
             pd.DataFrame: DataFrame containing all movies with metadata.
         """
-        conn = get_connection("data/recommendations.db")
+        conn = get_connection(str(DATA_DIR / "recommendations.db"))
         rows = get_all_movies(conn)
         return pd.DataFrame(
             rows,
@@ -288,12 +303,15 @@ if option == "Content-Based":
 
 # --- Collaborative Filtering Recommender Workflow ---
 else:
-    user_id = st.number_input("Enter User ID", min_value=1, max_value=10000, step=1)
+    max_user_id = 20 if DATA_MODE == "demo" else 10000
+    user_id = st.number_input(
+        "Enter User ID", min_value=1, max_value=max_user_id, step=1
+    )
 
     if st.button("Get Recommendations", key="cf_button"):
         try:
             recs = get_user_recommendations(user_id, top_n=10)
-            conn = get_connection("data/recommendations.db")
+            conn = get_connection(str(DATA_DIR / "recommendations.db"))
             rows = get_all_movies(conn)
             movies_df = pd.DataFrame(
                 rows,

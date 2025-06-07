@@ -10,6 +10,8 @@ to save and load precomputed user-item and similarity matrices for efficient reu
 import os
 import sys
 
+from dotenv import load_dotenv
+
 # Add src/ to the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -19,6 +21,8 @@ from scipy.sparse import csr_matrix
 from sklearn.metrics.pairwise import cosine_similarity
 
 from src.db.repository import get_valid_ratings
+
+load_dotenv()
 
 
 class CollaborativeFilteringRecommender:
@@ -274,14 +278,20 @@ class CollaborativeFilteringRecommender:
         return top_movie_ids
 
 
-def ensure_matrices_exist(
-    db_path="data/recommendations.db", matrix_dir="data/processed"
-):
+def ensure_matrices_exist():
     """
     Ensure that the similarity and user-item matrices exist.
     If not, regenerate them from the database.
     """
     import os
+
+    DATA_MODE = os.getenv("DATA_MODE", "full").lower()
+    db_path = (
+        "data/demo/recommendations.db"
+        if DATA_MODE == "demo"
+        else "data/recommendations.db"
+    )
+    matrix_dir = "data/processed_demo" if DATA_MODE == "demo" else "data/processed"
 
     user_item_path = os.path.join(matrix_dir, "user_item_matrix.npz")
     similarity_path = os.path.join(matrix_dir, "similarity_matrix.npy")
@@ -291,7 +301,7 @@ def ensure_matrices_exist(
         recommender = CollaborativeFilteringRecommender()
         recommender.load_data_from_db(db_path=db_path)
         recommender.compute_user_similarity()
-        recommender.save_matrices()
+        recommender.save_matrices(matrix_dir=matrix_dir)
     else:
         print("✅ Matrices already exist.")
 

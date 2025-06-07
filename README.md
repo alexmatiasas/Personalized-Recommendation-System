@@ -28,6 +28,10 @@ This project builds a movie recommender system by integrating collaborative filt
     │   │   ├── movies.csv, ratings.csv, users.csv, etc.
     │   ├── processed/
     │   │   ├── enriched_movies_clean.csv, similarity_matrix.npy, etc.
+    │   ├── demo/
+    │   │   ├── enriched_movies.csv, ratings.csv, recommendations.db
+    │   ├── processed_demo/
+    │   │   ├── user_item_matrix.npz, similarity_matrix.npy
     │   └── recommendations.db
     ├── docs/
     │   ├── enriched_data_analysis.md, jupyter_kernel_setup.md
@@ -109,6 +113,12 @@ This project builds a movie recommender system by integrating collaborative filt
     If you're only running the app locally with SQLite and no feedback logging, you may omit these variables.
     ```
 
+Optionally, you can run the app in "demo mode" to use a lightweight version of the dataset:
+
+    DATA_MODE=demo
+
+This uses `data/demo/` and `data/processed_demo/` files, suitable for deployment or quick testing. Only 20 users and 1145 movies are included.
+
 ---
 
 ## 📊 EDA & Preprocessing
@@ -117,6 +127,10 @@ This project builds a movie recommender system by integrating collaborative filt
 * Movie metadata enriched from TMDb (title, genres, overview, popularity, vote average)
 * Exported dataset with 3755 enriched movies
 * The file `enriched_movies_clean.csv` is not included in this repository. Instead, the preprocessed data has been loaded into the `data/recommendations.db` SQLite database, which powers the Streamlit app. You can regenerate the enrichment and populate the database using the scripts provided.
+
+👉 A reduced dataset for demonstration purposes is also available under `data/demo/` and `data/processed_demo/`. You can generate it using:
+    poetry run python scripts/reduce_dataset_for_demo.py
+    poetry run python scripts/load_demo_to_db.py
 
 ---
 
@@ -207,7 +221,7 @@ This notebook performs an exploratory analysis over the 3,755 enriched movies, f
 * Interactive movie recommender with dual modes:
   * Content-based recommendations based on a selected movie
   * Collaborative filtering based on existing user preferences
-* App connects to a local SQLite database (`data/recommendations.db`) for movie and rating queries. The similarity matrices are automatically generated if missing, so you do not need to precompute them.
+* App connects to a local SQLite database (`data/recommendations.db` or `data/demo/recommendations.db` depending on `DATA_MODE`) for movie and rating queries. The similarity matrices are automatically generated if missing, so you do not need to precompute them.
   These matrices include the user-item matrix (`user_item_matrix.npz`), content-based similarity matrix (`similarity_matrix.npy`), and user-user similarity model (`user_similarity.joblib`). If any of these files are missing, the system will detect this at startup and regenerate them dynamically to ensure functionality.
 * Feedback logs are recorded to MongoDB (if configured), including method, user id, movie titles, and timestamp
 * Placeholder posters are used when actual TMDb images are missing
@@ -217,6 +231,9 @@ To launch the app locally:
     ```bash
     poetry run streamlit run app/streamlit_app.py
     ```
+
+➤ To launch the app using the demo data:
+    DATA_MODE=demo poetry run streamlit run app/streamlit_app.py
 
 ---
 
