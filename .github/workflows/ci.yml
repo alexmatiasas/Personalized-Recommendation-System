@@ -10,6 +10,7 @@ jobs:
   build-and-test:
     name: 🧪 Lint & Test with Poetry
     runs-on: ubuntu-latest  # Use the latest Ubuntu runner provided by GitHub Actions
+    timeout-minutes: 15
 
     steps:
       - name: ⬇️ Checkout repository
@@ -45,3 +46,21 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}  # Use a GitHub secret to securely pass the Codecov token
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with: 
+          node-version: "18"
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: 🔥 Run Postman smoke tests with Newman
+        run: |
+          # Start the backend server in the background with nohup, bind to 0.0.0.0, and capture logs
+          nohup poetry run uvicorn backend.main:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &
+          # Wait for the server to start
+          sleep 5
+          newman run postman/collections/movie-recommender-collection.json \
+            --environment postman/environments/movie-recommender-env.json \
+            --bail
