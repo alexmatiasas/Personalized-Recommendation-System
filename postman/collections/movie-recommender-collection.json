@@ -9,6 +9,64 @@
 	"item": [
 		{
 			"name": "List Movies",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response is an array with at least one movie object\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('array').that.is.not.empty;",
+							"    pm.expect(responseData).to.satisfy(arr => arr.every(item => typeof item === 'object' && item.hasOwnProperty('movieId')));",
+							"});",
+							"",
+							"",
+							"pm.test(\"Validate the movie object schema\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('array').that.is.not.empty;",
+							"",
+							"    responseData.forEach(function(movie) {",
+							"        pm.expect(movie).to.be.an('object');",
+							"        pm.expect(movie).to.have.all.keys('movieId', 'title', 'genres', 'similarity');",
+							"        pm.expect(movie.movieId).to.be.a('number');",
+							"        pm.expect(movie.title).to.be.a('string');",
+							"        pm.expect(movie.genres).to.satisfy(function(genres) {",
+							"            return genres === null || Array.isArray(genres);",
+							"        });",
+							"        pm.expect(movie.similarity).to.satisfy(function(similarity) {",
+							"            return similarity === null || typeof similarity === 'number';",
+							"        });",
+							"    });",
+							"});",
+							"",
+							"",
+							"pm.test(\"Title is a non-empty string\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('array').that.is.not.empty;",
+							"    responseData.forEach(movie => {",
+							"        pm.expect(movie.title).to.exist.and.to.be.a('string').and.to.have.lengthOf.at.least(1, \"Title should not be empty\");",
+							"    });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "noauth"
@@ -29,6 +87,30 @@
 		},
 		{
 			"name": "List Users",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"pm.test(\"Response is a non-empty array\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('array').that.is.not.empty;",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -46,6 +128,57 @@
 		},
 		{
 			"name": "Top 5 Recommendations With Content Recommender for movieID 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response schema contains the required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.all.keys('source_id', 'method', 'top_n', 'recommendations');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Recommendations is an array with at least one element\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.have.property('recommendations').that.is.an('array').with.length.of.at.least(1);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Each recommendation has valid fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.recommendations).to.be.an('array').that.is.not.empty;",
+							"",
+							"    responseData.recommendations.forEach(function(recommendation) {",
+							"        pm.expect(recommendation).to.have.all.keys('movieId', 'title', 'genres', 'similarity');",
+							"        pm.expect(recommendation.movieId).to.be.a('number');",
+							"        pm.expect(recommendation.title).to.be.a('string').that.is.not.empty;",
+							"        pm.expect(recommendation.genres).to.be.a('string');",
+							"        pm.expect(recommendation.similarity).to.be.a('number');",
+							"    });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "noauth"
@@ -74,6 +207,66 @@
 		},
 		{
 			"name": "Top 5 Recommendations for Collaborative Filtering Recommender for userID 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.eql(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.all.keys('source_id', 'method', 'top_n', 'recommendations');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Recommendations is an array with at least one element\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.recommendations).to.be.an('array').that.is.not.empty;",
+							"});",
+							"",
+							"",
+							"pm.test(\"MovieId is a non-negative integer\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.recommendations).to.be.an('array').that.is.not.empty;",
+							"",
+							"    responseData.recommendations.forEach(recommendation => {",
+							"        pm.expect(recommendation.movieId).to.be.a('number').and.to.be.at.least(0);",
+							"    });",
+							"});",
+							"",
+							"",
+							"pm.test(\"Title and genres should be either null or non-empty strings\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.recommendations).to.be.an('array').that.is.not.empty;",
+							"    ",
+							"    responseData.recommendations.forEach(function(recommendation) {",
+							"        pm.expect(recommendation.title).to.satisfy(function(value) {",
+							"            return value === null || (typeof value === 'string' && value.trim().length > 0);",
+							"        }, \"Title must be either null or a non-empty string\");",
+							"",
+							"        pm.expect(recommendation.genres).to.satisfy(function(value) {",
+							"            return value === null || (typeof value === 'string' && value.trim().length > 0);",
+							"        }, \"Genres must be either null or a non-empty string\");",
+							"    });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "noauth"
@@ -102,6 +295,46 @@
 		},
 		{
 			"name": "Health Status of the API",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response Content-Type is application/json\", function () {",
+							"    pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/json');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required field 'status'\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object').that.has.property('status');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Status field is a non-empty string\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.status).to.exist.and.to.be.a('string').and.to.have.lengthOf.at.least(1, \"Status should not be empty\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -119,16 +352,75 @@
 		},
 		{
 			"name": "OpenAPI specification",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response content type is application/json\", function () {",
+							"    pm.expect(pm.response.headers.get('Content-Type')).to.include(\"application/json\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response contains required fields in the 'info' object\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.info).to.exist;",
+							"    pm.expect(responseData.info).to.have.all.keys('title', 'version');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Validate that 'paths' object contains the expected endpoints and each endpoint has a valid schema\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.paths).to.exist.and.to.be.an('object');",
+							"",
+							"    const expectedEndpoints = [",
+							"        \"/recommendations/content/{movie_id}\",",
+							"        \"/movies\",",
+							"        \"/users\",",
+							"        \"/recommendations/collaborative/{user_id}\",",
+							"        \"/health\"",
+							"    ];",
+							"",
+							"    expectedEndpoints.forEach(endpoint => {",
+							"        pm.expect(responseData.paths).to.have.property(endpoint);",
+							"        const endpointData = responseData.paths[endpoint];",
+							"        pm.expect(endpointData).to.have.property('get');",
+							"        pm.expect(endpointData.get).to.have.property('responses');",
+							"        pm.expect(endpointData.get.responses).to.have.property('200');",
+							"        pm.expect(endpointData.get.responses['200']).to.have.property('content');",
+							"        pm.expect(endpointData.get.responses['200'].content).to.have.property('application/json');",
+							"        pm.expect(endpointData.get.responses['200'].content['application/json']).to.have.property('schema');",
+							"    });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/openapi.json",
-					"protocol": "http",
+					"raw": "{{base_url}}/openapi.json",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"openapi.json"
 					]
