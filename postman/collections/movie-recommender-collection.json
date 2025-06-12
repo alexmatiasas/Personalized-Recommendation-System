@@ -1,0 +1,141 @@
+{
+	"info": {
+		"_postman_id": "79c29872-f6ec-4e61-84f8-940c39d45daa",
+		"name": "Movie Recommender API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45768246",
+		"_collection_link": "https://martian-meadow-656146.postman.co/workspace/Alejandro-Mat%C3%ADas-Astorga's-Work~67c3a45f-3c76-4503-8f5e-dfa37104abb1/collection/45768246-79c29872-f6ec-4e61-84f8-940c39d45daa?action=share&source=collection_link&creator=45768246"
+	},
+	"item": [
+		{
+			"name": "List Movies",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/movies",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"movies"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/users",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Top 5 Recommendations With Content Recommender for movieID 1",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/recommendations/content/1?top_n=5",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"recommendations",
+						"content",
+						"1"
+					],
+					"query": [
+						{
+							"key": "top_n",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Top 5 Recommendations for Collaborative Filtering Recommender for userID 1",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/recommendations/collaborative/1?top_n=5",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"recommendations",
+						"collaborative",
+						"1"
+					],
+					"query": [
+						{
+							"key": "top_n",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Health Status of the API",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OpenAPI specification",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/openapi.json",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"openapi.json"
+					]
+				},
+				"description": "Generated from cURL: curl http://localhost:8000/openapi.json -o docs/openapi.json"
+			},
+			"response": []
+		}
+	]
+}

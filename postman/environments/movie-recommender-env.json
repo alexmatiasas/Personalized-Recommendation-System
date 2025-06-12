@@ -1,0 +1,15 @@
+{
+	"id": "f99282ad-a329-46df-ae23-c537ff0c046e",
+	"name": "Local API",
+	"values": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2025-06-12T22:47:34.383Z",
+	"_postman_exported_using": "Postman/11.49.3"
+}
