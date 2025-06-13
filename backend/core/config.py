@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Application mode: 'demo' or 'full'
-DATA_MODE = os.getenv("DATA_MODE", "full").lower()
+DATA_MODE = os.getenv("DATA_MODE", "demo").lower()
 
 # Base data directory depending on mode
 DATA_DIR = "data/demo" if DATA_MODE == "demo" else "data/ml-1m"
