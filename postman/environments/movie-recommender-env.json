@@ -4,12 +4,12 @@
 	"values": [
 		{
 			"key": "base_url",
-			"value": "https://personalized-recommendation-system-91ld.onrender.com",
+			"value": "http://127.0.0.1:8000",
 			"type": "default",
 			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2025-06-13T05:22:08.740Z",
+	"_postman_exported_at": "2025-06-13T05:39:59.552Z",
 	"_postman_exported_using": "Postman/11.49.3"
 }

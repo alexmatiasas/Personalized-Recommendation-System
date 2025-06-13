@@ -1,0 +1,15 @@
+{
+	"id": "b474150e-3b4f-40bf-bef7-26535033b39a",
+	"name": "Render API",
+	"values": [
+		{
+			"key": "base_url",
+			"value": "https://personalized-recommendation-system-91ld.onrender.com",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2025-06-13T05:40:13.837Z",
+	"_postman_exported_using": "Postman/11.49.3"
+}
