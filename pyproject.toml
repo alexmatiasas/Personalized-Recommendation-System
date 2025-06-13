@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "personalized-recommendation-system"
-version = "0.1.0"
+version = "1.1.0"
 description = "A personalized recommendation system for movies using MovieLens as main dataset"
 authors = ["Alejandro Matías Astorga <alejandromatiasastorga@gmail.com>"]
 license = "MIT"
@@ -21,6 +21,9 @@ requests = "^2.32.3"
 python-dotenv = "^1.1.0"
 dotenv = "^0.9.9"
 joblib = "^1.5.1"
+fastapi = "^0.115.12"
+uvicorn = "^0.34.3"
+httpx = "^0.28.1"
 
 
 [tool.poetry.group.dev.dependencies]

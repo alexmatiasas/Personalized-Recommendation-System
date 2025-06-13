@@ -113,11 +113,18 @@ class CollaborativeFilteringRecommender:
         pivot = self.ratings_df.pivot(
             index="userId", columns="movieId", values="rating"
         ).fillna(0)
-        # Convert the pivot table to a sparse matrix for efficiency
-        self.user_item_matrix = csr_matrix(pivot.values)
         # Store the user and movie IDs for later reference
-        self.user_ids = pivot.index.tolist()
-        self.item_ids = pivot.columns.tolist()
+        self.user_ids = pivot.index.tolist()  # actual userId values
+        self.item_ids = pivot.columns.tolist()  # actual movieId values
+        # Convert to a sparse matrix preserving real indices and columns
+        self.user_item_matrix = csr_matrix(pivot.values)
+
+        # For debugging, you can reconstruct a DataFrame with real IDs:
+        # self.user_item_df = pd.DataFrame.sparse.from_spmatrix(
+        #     self.user_item_matrix,
+        #     index=self.user_ids,
+        #     columns=self.item_ids
+        # )
         print(f"✅ Built user-item matrix with shape {pivot.shape}")
 
     def compute_user_similarity(self):
@@ -159,20 +166,46 @@ class CollaborativeFilteringRecommender:
     def load_matrices(self, matrix_dir="data/processed"):
         """
         Load the user-item matrix and similarity matrix from binary files.
+        If files are missing, regenerate them automatically.
 
         Args:
             matrix_dir (str): Directory path where the matrices are stored.
         """
         import os
 
+        user_item_path = os.path.join(matrix_dir, "user_item_matrix.npz")
+        similarity_path = os.path.join(matrix_dir, "similarity_matrix.npy")
+        if not os.path.exists(user_item_path) or not os.path.exists(similarity_path):
+            print("⚠️ Matrices not found. Recomputing...")
+            # regenerate: load from DB, compute, then save
+            self.load_data_from_db()  # default db_path or pass existing
+            self.compute_user_similarity()
+            self.save_matrices(matrix_dir=matrix_dir)
+
         import numpy as np
         from scipy.sparse import load_npz
 
-        self.user_item_matrix = load_npz(
-            os.path.join(matrix_dir, "user_item_matrix.npz")
+        self.user_item_matrix = load_npz(user_item_path)
+        self.similarity_matrix = np.load(similarity_path)
+        # Restore user_ids and item_ids from the database
+        import pandas as pd
+
+        from src.db.repository import get_valid_ratings
+        from src.db.sqlite_client import get_connection
+
+        conn = get_connection(
+            os.getenv("RECOMMENDATION_DB_PATH", "data/recommendations.db")
         )
-        self.similarity_matrix = np.load(
-            os.path.join(matrix_dir, "similarity_matrix.npy")
+        rows = get_valid_ratings(conn)
+        ratings_df = pd.DataFrame(rows, columns=["userId", "movieId", "rating"])
+        pivot = ratings_df.pivot(
+            index="userId", columns="movieId", values="rating"
+        ).fillna(0)
+        self.user_ids = pivot.index.tolist()
+        self.item_ids = pivot.columns.tolist()
+        # Build a DataFrame view with real IDs for reference
+        self.user_item_df = pd.DataFrame.sparse.from_spmatrix(
+            self.user_item_matrix, index=self.user_ids, columns=self.item_ids
         )
         print("📥 Loaded precomputed user-item and similarity matrices.")
 

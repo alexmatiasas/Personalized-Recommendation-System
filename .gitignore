@@ -87,3 +87,6 @@ data/processed_demo/*.npz
 
 # Models
 models/
+
+# Backend API
+!backend/models

@@ -4,23 +4,40 @@ It defines a default database path and functions for executing SELECT queries an
 retrieving data either as a single row or a list of rows.
 """
 
+import os
 import sqlite3
+from pathlib import Path
 from typing import Any, List, Tuple
 
-DB_PATH = "data/recommendations.db"  # Puedes parametrizar esto si prefieres
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Determine project root
+ROOT = Path(__file__).parents[2]
+
+# Choose database mode: "demo" for the smaller demo DB, otherwise full DB
+mode = os.getenv("DATA_MODE", "prod").lower()
+if mode == "demo":
+    DB_PATH = ROOT / "data" / "demo" / "recommendations.db"
+else:
+    DB_PATH = ROOT / "data" / "recommendations.db"
 
 
-def get_connection(db_path: str = DB_PATH):
+def get_connection(db_path: Path = DB_PATH):
     """
     Establishes and returns a connection to the specified SQLite database.
 
     Args:
-        db_path (str): Path to the SQLite database file. Defaults to DB_PATH.
+        db_path (Path): Path to the SQLite database file. Defaults to DB_PATH.
 
     Returns:
         sqlite3.Connection: A connection object to the SQLite database.
     """
-    return sqlite3.connect(db_path)
+    path = Path(db_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Database file not found at {path}")
+    return sqlite3.connect(str(path))
 
 
 def fetch_all(query: str, params: Tuple = ()) -> List[Tuple[Any]]:

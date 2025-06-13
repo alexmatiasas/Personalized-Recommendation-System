@@ -149,7 +149,6 @@ This project uses the MovieLens 1M dataset, enhanced via the TMDb API. To reprod
         ```
 4. This creates `data/processed/enriched_movies_clean.csv`, used by the recommendation models and the Streamlit app.
 
-
 Note: As of the latest version, the similarity matrices (`user_item_matrix.npz`, `similarity_matrix.npy`, and `user_similarity.joblib`) are no longer tracked in the repository. These files are automatically generated at runtime in the `data/processed/` and `models/` directories. If any matrix is missing, it will be computed on application startup. This ensures reproducibility and eliminates the need for storing large files.
 
 Note: The enriched metadata includes additional fields such as movie poster, popularity, overview length, and release year, which are not present in the original MovieLens data.
@@ -234,6 +233,25 @@ To launch the app locally:
 
 ➤ To launch the app using the demo data:
     DATA_MODE=demo poetry run streamlit run app/streamlit_app.py
+
+---
+
+<!-- ### 🚀 Live Demo
+
+You can explore the live Streamlit app here: **[Movie Recommender Live](https://your-app.onrender.com)**
+
+<!-- Replace the following image paths with your actual screenshots -->
+<!-- ![Streamlit Home](docs/images/streamlit_home.png)
+![Recommendations View](docs/images/streamlit_recs.png) -->
+
+<!--### 🔗 API Endpoints
+
+The recommendation back‑end is also available as a REST API (v1.1.0). You can use the following base URL:
+
+```bash
+export BASE_URL=https://your-app.onrender.com
+curl "$BASE_URL/recommendations/content/1?top_n=5"
+``` -->
 
 ---
 

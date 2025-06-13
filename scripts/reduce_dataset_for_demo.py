@@ -16,9 +16,13 @@ print("🔄 Loading original ratings and movie metadata...")
 ratings_df = pd.read_csv(ratings_path)
 enriched_df = pd.read_csv(enriched_movies_path)
 
+# Just keep valid movies from enriched dataset
+valid_movies = set(enriched_df["movieId"])
+valid_ratings = ratings_df[ratings_df["movieId"].isin(valid_movies)]
+
 # Filter ratings
-selected_users = ratings_df["userId"].unique()[:NUM_USERS]
-filtered_ratings = ratings_df[ratings_df["userId"].isin(selected_users)]
+selected_users = valid_ratings["userId"].unique()[:NUM_USERS]
+filtered_ratings = valid_ratings[valid_ratings["userId"].isin(selected_users)]
 
 # Filter enriched movies
 filtered_movie_ids = filtered_ratings["movieId"].unique()
