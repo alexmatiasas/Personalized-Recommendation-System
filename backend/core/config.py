@@ -8,6 +8,7 @@ Configuration module for environment variables and project settings.
 """
 
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -20,7 +21,10 @@ DATA_MODE = os.getenv("DATA_MODE", "full").lower()
 # Base data directory depending on mode
 DATA_DIR = "data/demo" if DATA_MODE == "demo" else "data/ml-1m"
 
+# Project root directory
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
 # Path to SQLite database
-DB_PATH = f"{DATA_DIR}/recommendations.db"
+DB_PATH = PROJECT_ROOT / DATA_DIR / "recommendations.db"
 
 # You can add other constants like model paths, API keys, etc.
