@@ -4,10 +4,20 @@ It defines a default database path and functions for executing SELECT queries an
 retrieving data either as a single row or a list of rows.
 """
 
+import os
 import sqlite3
+from pathlib import Path
 from typing import Any, List, Tuple
 
-DB_PATH = "data/recommendations.db"  # Puedes parametrizar esto si prefieres
+# Determine project root
+ROOT = Path(__file__).parents[2]
+
+# Choose database mode: "demo" for the smaller demo DB, otherwise full DB
+mode = os.getenv("DATA_MODE", "prod").lower()
+if mode == "demo":
+    DB_PATH = str(ROOT / "data" / "demo" / "recommendations.db")
+else:
+    DB_PATH = str(ROOT / "data" / "recommendations.db")
 
 
 def get_connection(db_path: str = DB_PATH):

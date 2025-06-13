@@ -40,6 +40,8 @@ jobs:
           poetry run pre-commit run --all-files  # Run all pre-commit hooks on the codebase
 
       - name: 🧪 Run tests with coverage
+        env:
+          DATA_MODE: demo
         run: poetry run pytest --cov=src --cov-report=term-missing --cov-report=xml  # Run tests and generate coverage reports
 
       - name: Upload coverage reports to Codecov
